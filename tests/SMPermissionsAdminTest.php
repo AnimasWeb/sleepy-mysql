@@ -37,6 +37,13 @@ class SMPermissionsAdminTest extends PHPUnit_Framework_TestCase {
     $this->assertAttributeEquals($perms, 'permissions', $p);
   }
 
+  public function testChangeAdminStatus() {
+    $p = new \SleepyMySQL\SMPermissionsAdmin(false, \SleepyMySQL\SMPermissionsAdmin::MODE_DENY);
+    $this->assertAttributeEquals(false, 'admin', $p);
+    $p->setAdmin(true);
+    $this->assertAttributeEquals(true, 'admin', $p);
+  }
+
   /**
    * @dataProvider provider
    */

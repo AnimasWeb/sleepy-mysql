@@ -23,6 +23,10 @@ class SMPermissionsAdmin extends SMPermissions {
     $this->permissions = $permissions;
   }
 
+  public function setAdmin($status) {
+    $this->admin = $status;
+  }
+
   public function hasPermission($table, $function) {
     return ($this->admin === true)
         || ($this->mode == self::MODE_ALLOW && $this->checkModeAllow($table, $function))
