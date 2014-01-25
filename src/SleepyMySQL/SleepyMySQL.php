@@ -193,14 +193,23 @@ class SleepyMySQL {
       if( isset($_SERVER['QUERY_STRING']) ) $_SERVER['REQUEST_URI'] .= '?' . $_SERVER['QUERY_STRING'];
     }
 
-    $request_url = $_SERVER['REQUEST_URI'];
-    $script_url = $_SERVER['PHP_SELF'];
-    $request_url = substr($request_url, strlen($base_uri));
+    // Server params
+    $scriptName = $_SERVER['SCRIPT_NAME']; // <-- "/foo/index.php"
+    $requestUri = $_SERVER['REQUEST_URI']; // <-- "/foo/bar?test=abc" or "/foo/index.php/bar?test=abc"
+    $queryString = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : ''; // <-- "test=abc" or ""
 
-    $url = $request_url;
-    if( $request_url != $script_url ) $url = trim(preg_replace('/' . str_replace('/', '\/', str_replace('index.php', '', $script_url)) . '/', '', $request_url, 1), '/');
-    $url = rtrim(preg_replace('/\?.*/', '', $url), '/');
-    if( substr($url, 0, 1) == '/' ) $url = substr($url, 1);
+    // Physical path
+    if (strpos($requestUri, $scriptName) !== false) {
+      $physicalPath = $scriptName; // <-- Without rewriting
+    } else {
+      $physicalPath = str_replace('\\', '', dirname($scriptName)); // <-- With rewriting
+    }
+
+    // Virtual path
+    $url = substr_replace($requestUri, '', 0, strlen($physicalPath)); // <-- Remove physical path
+    $url = str_replace('?' . $queryString, '', $url); // <-- Remove query string
+    $url = ltrim($url, '/'); // <-- Ensure no leading slash
+
     return explode('/', $url);
   }
 
