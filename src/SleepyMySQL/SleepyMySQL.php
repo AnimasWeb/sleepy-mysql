@@ -71,11 +71,11 @@ class SleepyMySQL {
    *</code>
    * @param $permissions \SleepyMySQL\SMPermissions The object to check for permission
    * @access public
-   * @throws Exception If database init fails
+   * @throws \Exception If database init fails
    */
   public function __construct($db_config, $permissions) {
     $this->db = new SMDatabase($db_config);
-    if( !$this->db->init() ) throw new Exception($this->db->get_error());
+    if( !$this->db->init() ) throw new \Exception($this->db->get_error());
 
     $this->db_structure = $this->map_db($db_config['database']);
     $this->segments = $this->get_uri_segments();
