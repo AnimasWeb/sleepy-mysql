@@ -70,17 +70,15 @@ class SleepyMySQL {
    * );
    *</code>
    * @param $permissions \SleepyMySQL\SMPermissions The object to check for permission
-   * @param string $base_uri Optional base URI if not in root folder
    * @access public
    * @throws Exception If database init fails
    */
-  public function __construct($db_config, $permissions, $base_uri = '') {
+  public function __construct($db_config, $permissions) {
     $this->db = new SMDatabase($db_config);
     if( !$this->db->init() ) throw new Exception($this->db->get_error());
 
     $this->db_structure = $this->map_db($db_config['database']);
-    $this->segments = $this->get_uri_segments($base_uri);
-//    error_log(var_export($this->segments, true));
+    $this->segments = $this->get_uri_segments();
     $this->table_index = array();
     $this->permissions = $permissions;
   }
@@ -182,11 +180,10 @@ class SleepyMySQL {
   /**
    * Get the URI segments from the URL
    *
-   * @param string $base_uri Optional base URI if not in root folder
    * @return array Returns array of URI segments
    * @access private
    */
-  private function get_uri_segments($base_uri) {
+  private function get_uri_segments() {
     // Fix REQUEST_URI if required
     if( !isset($_SERVER['REQUEST_URI']) ) {
       $_SERVER['REQUEST_URI'] = substr($_SERVER['PHP_SELF'], 1);
