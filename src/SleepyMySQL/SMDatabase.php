@@ -235,8 +235,10 @@ class SMDatabase {
     public function fetch_object() {
         $object = @mysql_fetch_object($this->_query);
 
-        if(!$object && $this->_verbose) {
-            $this->_error = mysql_error();
+        if(!$object) {
+            $this->_error = ($this->_verbose) ? mysql_error() : true;
+        } else {
+            $this->_error = null;
         }
 
         return $object;
@@ -255,8 +257,10 @@ class SMDatabase {
             }
         }
 
-        if(!$array && $this->_verbose) {
-            $this->_error = mysql_error();
+        if(!$array) {
+            $this->_error = ($this->_verbose) ? mysql_error() : true;
+        } else {
+            $this->_error = null;
         }
 
         return $array;
@@ -273,10 +277,10 @@ class SMDatabase {
             $results[] = $array;
         }
 
-
-
-        if(!$array && $this->_verbose) {
-            $this->_error = mysql_error();
+        if(!$array) {
+            $this->_error = ($this->_verbose) ? mysql_error() : true;
+        } else {
+            $this->_error = null;
         }
 
         return $results;
@@ -288,8 +292,10 @@ class SMDatabase {
     public function num_rows() {
         $num = @mysql_num_rows($this->_query);
 
-        if(!$num && $this->_verbose) {
-            $this->_error = mysql_error();
+        if(!$num) {
+            $this->_error = ($this->_verbose) ? mysql_error() : true;
+        } else {
+            $this->_error = null;
         }
 
         return $num;
@@ -303,9 +309,10 @@ class SMDatabase {
 
         $query = @mysql_query($query_text);
 
-        if(!$query && $this->_verbose) {
-            echo "<h1>MySQL Error:</h1>";
-            echo "<p>" . mysql_error() . "</p>";
+        if(!$query) {
+            $this->_error = ($this->_verbose) ? mysql_error() : true;
+        } else {
+            $this->_error = null;
         }
 
         $this->_query = $query;
