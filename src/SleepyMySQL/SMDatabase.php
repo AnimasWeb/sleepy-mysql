@@ -264,14 +264,7 @@ class SMDatabase {
    * Will return the array of data from the query.
    */
   public function fetch_array() {
-    $array = @mysql_fetch_array($this->_query);
-    if($array) {
-      foreach($array as $key => $val) {
-        if(is_numeric($key)) {
-          unset($array[$key]);
-        }
-      }
-    }
+    $array = @mysql_fetch_array($this->_query, MYSQL_ASSOC);
 
     if(!$array) {
       $this->_error = ($this->_verbose) ? mysql_error() : true;
@@ -284,12 +277,7 @@ class SMDatabase {
 
   public function fetch_all() {
     $results = array();
-    while($array = @mysql_fetch_array($this->_query)) {
-      foreach($array as $key => $val) {
-        if(is_numeric($key)) {
-          unset($array[$key]);
-        }
-      }
+    while($array = @mysql_fetch_array($this->_query, MYSQL_ASSOC)) {
       $results[] = $array;
     }
 
