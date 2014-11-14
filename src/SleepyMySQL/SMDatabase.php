@@ -89,12 +89,12 @@ class SMDatabase {
   public function select($fields = '*') {
     $query = "SELECT";
 
-    if(!empty($fields) && !is_array($fields)) {
-      $query .= " {$fields}";
-    } else if(is_array($fields)) {
-      $query .= " `";
-      $query .= implode("`,`", $fields);
-      $query .= "`";
+    $fields = $this->quoteFields($fields);
+    if(!empty($fields)) {
+      if(!is_array($fields)) {
+        $fields = array($fields);
+      }
+      $query .= ' ' . implode(",", $fields);
     }
 
     $this->_buildQuery = $query;
@@ -184,9 +184,11 @@ class SMDatabase {
    * where(array("username", "level"), array("Caleb", "10"), array("=", "<"))
    */
   public function where($fields, $values, $operators = '') {
+    $fields = $this->quoteFields($fields);
+
     if(!is_array($fields) && !is_array($values)) {
       $operator = (empty($operators)) ? '=' : $operators[0];
-      $query = " WHERE `{$fields}` {$operator} '{$values}'";
+      $query = " WHERE {$fields} {$operator} '{$values}'";
     } else {
       $array = array_combine($fields, $values);
       $query = " WHERE ";
@@ -198,7 +200,7 @@ class SMDatabase {
 
         $operator = (!empty($operators) && !empty($operators[$counter])) ? $operators[$counter] : '=';
 
-        $data[] = "`{$key}` {$operator} '{$value}'";
+        $data[] = "{$key} {$operator} '{$value}'";
 
         $counter++;
       }
@@ -215,7 +217,9 @@ class SMDatabase {
    * order_by("username", "asc")
    */
   public function order_by($field, $direction = 'asc') {
-    if($field) $this->_buildQuery .= " ORDER BY `{$field}` " . strtoupper($direction);
+    $field = $this->quoteFields($field);
+
+    if($field) $this->_buildQuery .= " ORDER BY {$field} " . strtoupper($direction);
     return $this;
   }
 
@@ -227,6 +231,18 @@ class SMDatabase {
   public function limit($max, $min = '0') {
     if($max) $this->_buildQuery .= " LIMIT {$min},{$max}";
     return $this;
+  }
+
+  /*
+   * Run a math expression
+   */
+  public function doMathExpression($expression) {
+    if($expression != mysql_real_escape_string($expression)) return false;
+    $query = "SELECT $expression";
+    $this->query($query);
+    if($this->_error) return false;
+    $row = $this->fetch_array();
+    return array_pop($row);
   }
 
   /*
@@ -336,6 +352,26 @@ class SMDatabase {
 
   public function get_last_insert_id() {
     return @mysql_insert_id();
+  }
+
+  private function quoteFields($fields) {
+    $is_array = is_array($fields);
+    if(!$is_array) {
+      $fields = array($fields);
+    }
+
+    foreach($fields as &$field) {
+      $terms = explode('.', $field);
+      foreach($terms as &$term) {
+        $term = ($term == '*') ? $term : "`$term`";
+      }
+      $field = implode('.', $terms);
+    }
+
+    if(!$is_array) {
+      $fields = $fields[0];
+    }
+    return $fields;
   }
 }
 
