@@ -217,9 +217,10 @@ class SMDatabase {
    * order_by("username", "asc")
    */
   public function order_by($field, $direction = 'asc') {
-    $field = $this->quoteFields($field);
-
-    if($field) $this->_buildQuery .= " ORDER BY {$field} " . strtoupper($direction);
+    if($field) {
+      $field = $this->quoteFields($field);
+      $this->_buildQuery .= " ORDER BY {$field} " . strtoupper($direction);
+    }
     return $this;
   }
 
