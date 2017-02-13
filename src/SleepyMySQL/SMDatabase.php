@@ -364,6 +364,10 @@ class SMDatabase {
     }
     return $fields;
   }
+
+  public function real_escape_string($string) {
+    return mysqli_real_escape_string($this->_db, $string);
+  }
 }
 
 ?>
