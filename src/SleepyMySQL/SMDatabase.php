@@ -297,7 +297,7 @@ class SMDatabase {
    * Will return the number or rows affected from the query.
    */
   public function num_rows() {
-    $num = @mysql_num_rows($this->_query);
+    $num = @mysqli_num_rows($this->_query);
 
     if(!$num) {
       $this->_error = ($this->_verbose) ? mysqli_error($this->_db) : true;
