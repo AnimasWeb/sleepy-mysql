@@ -13,6 +13,7 @@ class SMDatabase {
   private $_query; // Stores the current query.
   private $_error; // Stores an error based on $_verbose.
   private $_verbose; // Stores a boolean determining output / storage of errors.
+  private $_db;
 
   private $_buildQuery; // Stores the current "in progress" query build.
 
@@ -59,13 +60,14 @@ class SMDatabase {
    * Connects to the database.
    */
   private function __connect() {
-    $connection = @mysql_connect($this->_config["server"], $this->_config["username"], $this->_config["password"]);
+    $connection = @mysqli_connect($this->_config["server"], $this->_config["username"], $this->_config["password"]);
 
     if(!$connection) {
-      $this->_error = ($this->_verbose) ? mysql_error() : "Could not connect to database.";
+      $this->_error = ($this->_verbose) ? mysqli_error($connection) : "Could not connect to database.";
       return false;
     }
 
+    $this->_db = $connection;
     return true;
   }
 
@@ -73,10 +75,10 @@ class SMDatabase {
    * Selects the database to be working with.
    */
   private function __select_db() {
-    $database = @mysql_select_db($this->_config["database"]);
+    $database = @mysqli_select_db($this->_db, $this->_config["database"]);
 
     if(!$database) {
-      $this->_error = ($this->_verbose) ? mysql_error() : "Could not select database.";
+      $this->_error = ($this->_verbose) ? mysqli_error($database) : "Could not select database.";
       return false;
     }
 
@@ -146,7 +148,7 @@ class SMDatabase {
     $array = array();
 
     foreach($values as $value) {
-      $v = mysql_real_escape_string($value);
+      $v = mysqli_real_escape_string($this->_db, $value);
       $array[] = "'{$v}'";
     }
 
@@ -238,7 +240,7 @@ class SMDatabase {
    * Run a math expression
    */
   public function doMathExpression($expression) {
-    if($expression != mysql_real_escape_string($expression)) return false;
+    if($expression != mysqli_real_escape_string($this->_db, $expression)) return false;
     $query = "SELECT $expression";
     $this->query($query);
     if($this->_error) return false;
@@ -250,10 +252,10 @@ class SMDatabase {
    * Will return the object of data from the query.
    */
   public function fetch_object() {
-    $object = @mysql_fetch_object($this->_query);
+    $object = @mysqli_fetch_object($this->_query);
 
     if(!$object) {
-      $this->_error = ($this->_verbose) ? mysql_error() : true;
+      $this->_error = ($this->_verbose) ? mysqli_error($this->_db) : true;
     } else {
       $this->_error = null;
     }
@@ -265,10 +267,10 @@ class SMDatabase {
    * Will return the array of data from the query.
    */
   public function fetch_array() {
-    $array = @mysql_fetch_array($this->_query, MYSQL_ASSOC);
+    $array = @mysqli_fetch_array($this->_query, MYSQLI_ASSOC);
 
     if(!$array) {
-      $this->_error = ($this->_verbose) ? mysql_error() : true;
+      $this->_error = ($this->_verbose) ? mysqli_error($this->_db) : true;
     } else {
       $this->_error = null;
     }
@@ -278,12 +280,12 @@ class SMDatabase {
 
   public function fetch_all() {
     $results = array();
-    while($array = @mysql_fetch_array($this->_query, MYSQL_ASSOC)) {
+    while($array = @mysqli_fetch_array($this->_query, MYSQLI_ASSOC)) {
       $results[] = $array;
     }
 
     if(!$array) {
-      $this->_error = ($this->_verbose) ? mysql_error() : true;
+      $this->_error = ($this->_verbose) ? mysqli_error($this->_db) : true;
     } else {
       $this->_error = null;
     }
@@ -298,7 +300,7 @@ class SMDatabase {
     $num = @mysql_num_rows($this->_query);
 
     if(!$num) {
-      $this->_error = ($this->_verbose) ? mysql_error() : true;
+      $this->_error = ($this->_verbose) ? mysqli_error($this->_db) : true;
     } else {
       $this->_error = null;
     }
@@ -312,10 +314,10 @@ class SMDatabase {
   public function query($query_text = '') {
     $query_text = ($query_text == '') ? $this->_buildQuery : $query_text;
 
-    $query = @mysql_query($query_text);
+    $query = @mysqli_query($this->_db, $query_text);
 
     if(!$query) {
-      $this->_error = ($this->_verbose) ? mysql_error() : true;
+      $this->_error = ($this->_verbose) ? mysqli_error($this->_db) : true;
     } else {
       $this->_error = null;
     }
@@ -340,7 +342,7 @@ class SMDatabase {
   }
 
   public function get_last_insert_id() {
-    return @mysql_insert_id();
+    return @mysqli_insert_id($this->_db);
   }
 
   private function quoteFields($fields) {
