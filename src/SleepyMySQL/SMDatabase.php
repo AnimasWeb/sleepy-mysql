@@ -63,7 +63,7 @@ class SMDatabase {
     $connection = @mysqli_connect($this->_config["server"], $this->_config["username"], $this->_config["password"]);
 
     if(!$connection) {
-      $this->_error = ($this->_verbose) ? mysqli_error($connection) : "Could not connect to database.";
+      $this->_error = ($this->_verbose) ? mysqli_connect_error() : "Could not connect to database.";
       return false;
     }
 
