@@ -185,6 +185,7 @@ class SleepyMySQL {
       $fields = $this->db->fetch_all();
       $tables_arr[$table_name] = $fields;
     }
+    $this->set_cached_map($tables_arr);
     return $tables_arr;
   }
 
