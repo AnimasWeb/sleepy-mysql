@@ -55,6 +55,8 @@ class SleepyMySQL {
    */
   private $permissions;
 
+  private $memcached;
+
 
   /**
    * Create an instance, optionally setting a base URI
@@ -74,6 +76,11 @@ class SleepyMySQL {
    * @throws \Exception If database init fails
    */
   public function __construct($db_config, $permissions) {
+    if(class_exists('Memcached',false)) {
+       $this->memcached = new \Memcached();
+       $this->memcached->addServer('localhost', 11211);
+    }
+
     $this->db = new SMDatabase($db_config);
     if( !$this->db->init() ) throw new \Exception($this->db->get_error());
 
@@ -160,6 +167,10 @@ class SleepyMySQL {
    * @access private
    */
   private function map_db($database) {
+    $cached = $this->fetch_cached_map();
+    if($cached) {
+      return $cached;
+    }
     // Map db structure to array
     $tables_arr = array();
     $this->db->query('SHOW TABLES FROM ' . $database);
@@ -174,7 +185,22 @@ class SleepyMySQL {
       $fields = $this->db->fetch_all();
       $tables_arr[$table_name] = $fields;
     }
+    $this->set_cached_map($tables_arr);
     return $tables_arr;
+  }
+
+  private function fetch_cached_map() {
+    if (!$this->memcached) return null;
+    $serialized = $this->memcached->get('table-map');
+    if($serialized) {
+      return unserialize($serialized);
+    }
+    return null;
+  }
+
+  private function set_cached_map($table_map) {
+    if (!$this->memcached) return null;
+    $this->memcached->set('table-map', serialize($table_map), 3600);
   }
 
   /**
@@ -255,7 +281,7 @@ class SleepyMySQL {
     if( !$table || !isset($this->db_structure[$table]) ) {
       $this->output_404();
     }
-//error_log($id);
+
     if( $id && is_int($id) ) {
       $index = 'id';
       if( isset($this->table_index[$table]) ) $index = $this->table_index[$table];
@@ -383,7 +409,7 @@ class SleepyMySQL {
    */
   private function _put() {
     $output = json_decode(file_get_contents('php://input'), true);
-//    error_log(var_export($output,true));
+
     return $output;
   }
 
