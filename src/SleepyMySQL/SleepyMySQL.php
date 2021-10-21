@@ -193,7 +193,6 @@ class SleepyMySQL {
     if (!$this->memcached) return null;
     $serialized = $this->memcached->get('table-map');
     if($serialized) {
-      error_log('loaded cached map');
       return unserialize($serialized);
     }
     return null;
@@ -202,7 +201,6 @@ class SleepyMySQL {
   private function set_cached_map($table_map) {
     if (!$this->memcached) return null;
     $this->memcached->set('table-map', serialize($table_map), 3600);
-    error_log('cached map');
   }
 
   /**
@@ -283,7 +281,7 @@ class SleepyMySQL {
     if( !$table || !isset($this->db_structure[$table]) ) {
       $this->output_404();
     }
-//error_log($id);
+
     if( $id && is_int($id) ) {
       $index = 'id';
       if( isset($this->table_index[$table]) ) $index = $this->table_index[$table];
@@ -411,7 +409,7 @@ class SleepyMySQL {
    */
   private function _put() {
     $output = json_decode(file_get_contents('php://input'), true);
-//    error_log(var_export($output,true));
+
     return $output;
   }
 
